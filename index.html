@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CYBER LOG">
+  <title>CYBERPUNK RELOAD TRACKER</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #05050a;
+      --card-bg: rgba(15, 15, 26, 0.85);
+      --cyan: #00f3ff;
+      --pink: #ff0055;
+      --yellow: #ffee00;
+      --green: #00ff66;
+      --text: #e0e6ed;
+      --text-dim: #6c7d93;
+      --border: rgba(0, 243, 255, 0.3);
+      --font-num: 'Orbitron', sans-serif;
+      --font-mono: 'Share Tech Mono', monospace;
+      --font-main: 'Zen Kaku Gothic New', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      background-image: 
+        radial-gradient(circle at 50% 10%, rgba(0, 243, 255, 0.08) 0%, transparent 60%),
+        linear-gradient(rgba(255, 0, 85, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+      background-size: 100% 100%, 20px 20px, 20px 20px;
+      color: var(--text);
+      font-family: var(--font-main);
+      min-height: 100vh;
+      padding-bottom: 80px;
+      overflow-x: hidden;
+    }
+
+    header {
+      padding: env(safe-area-inset-top, 20px) 16px 12px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      background: rgba(5, 5, 10, 0.8);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    h1 {
+      font-family: var(--font-num);
+      font-size: 1.1rem;
+      letter-spacing: 3px;
+      color: var(--cyan);
+      text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+    }
+
+    nav {
+      display: flex;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(5, 5, 10, 0.95);
+      border-top: 1px solid var(--border);
+      padding-bottom: env(safe-area-inset-bottom, 10px);
+      z-index: 1000;
+    }
+
+    .nav-btn {
+      flex: 1;
+      padding: 12px;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-family: var(--font-num);
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .nav-btn.active {
+      color: var(--cyan);
+      text-shadow: 0 0 8px rgba(0, 243, 255, 0.6);
+      border-top: 2px solid var(--cyan);
+    }
+
+    main {
+      padding: 16px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .counter-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px 16px;
+      text-align: center;
+      position: relative;
+      margin-bottom: 20px;
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
+      clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+    }
+
+    .counter-card::before {
+      content: "STATUS: ABSTINENCE";
+      position: absolute;
+      top: 8px;
+      left: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--cyan);
+      letter-spacing: 1px;
+    }
+
+    .counter-days {
+      font-family: var(--font-num);
+      font-size: 4.5rem;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 0 20px rgba(0, 243, 255, 0.8), 0 0 40px rgba(0, 243, 255, 0.3);
+      line-height: 1;
+      margin: 16px 0 4px;
+    }
+
+    .counter-label {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      letter-spacing: 2px;
+    }
+
+    .sub-info {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--cyan);
+      margin-top: 12px;
+      opacity: 0.8;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid rgba(255, 0, 85, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 10px rgba(255, 0, 85, 0.05);
+    }
+
+    .card-title {
+      font-family: var(--font-num);
+      font-size: 0.9rem;
+      color: var(--pink);
+      margin-bottom: 16px;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-bottom: 4px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background: rgba(5, 5, 10, 0.8);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 10px 12px;
+      color: var(--text);
+      font-family: var(--font-main);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--pink);
+      box-shadow: 0 0 8px rgba(255, 0, 85, 0.4);
+    }
+
+    .btn-cyber {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, var(--pink), #b3003b);
+      border: none;
+      border-radius: 4px;
+      color: #fff;
+      font-family: var(--font-num);
+      font-size: 0.95rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
+      margin-top: 8px;
+    }
+
+    .btn-cyber:active {
+      transform: scale(0.98);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+    }
+
+    .stat-box {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 16px;
+      border-radius: 6px;
+    }
+
+    .stat-val {
+      font-family: var(--font-num);
+      font-size: 1.8rem;
+      color: var(--yellow);
+      text-shadow: 0 0 10px rgba(255, 238, 0, 0.4);
+      margin-top: 4px;
+    }
+
+    .breakdown-list {
+      margin-top: 8px;
+      font-size: 0.85rem;
+    }
+
+    .breakdown-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      border-bottom: 1px dashed rgba(255,255,255,0.1);
+    }
+
+    .history-item {
+      background: var(--card-bg);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-left: 3px solid var(--cyan);
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 0 4px 4px 0;
+      position: relative;
+    }
+
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .history-date {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    .history-type {
+      font-weight: bold;
+      color: var(--cyan);
+      font-size: 0.9rem;
+    }
+
+    .history-cost {
+      font-family: var(--font-num);
+      color: var(--yellow);
+      font-size: 0.9rem;
+    }
+
+    .history-memo {
+      font-size: 0.85rem;
+      color: #bbb;
+      white-space: pre-wrap;
+      margin-top: 4px;
+    }
+
+    .history-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      justify-content: flex-end;
+    }
+
+    .btn-sm {
+      padding: 4px 8px;
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      border-radius: 2px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.5);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .btn-danger {
+      border-color: var(--pink);
+      color: var(--pink);
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(5px);
+      z-index: 2000;
+      padding: 20px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--bg-color);
+      border: 1px solid var(--pink);
+      padding: 20px;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>NEXUS // EJA-LOG</h1>
+  </header>
+
+  <main>
+    <!-- メインタブ -->
+    <section id="tab-main" class="tab-content active">
+      <div class="counter-card">
+        <div class="counter-days" id="count-days">0</div>
+        <div class="counter-label">DAYS ABSTINENCE</div>
+        <div class="sub-info" id="last-reset-info">RESET: ----/--/-- --:--</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">▶ REGISTRATION LOG</div>
+        <form id="eja-form">
+          <div class="form-group">
+            <label>日時 (DATE & TIME)</label>
+            <input type="datetime-local" id="input-datetime" required>
+          </div>
+          <div class="form-group">
+            <label>内容 (CATEGORY / CATEGORY SUGGEST)</label>
+            <input type="text" id="input-type" list="type-suggestions" placeholder="オナニー, メンエス..." required autocomplete="off">
+            <datalist id="type-suggestions"></datalist>
+          </div>
+          <div class="form-group">
+            <label>支出額 (COST - JPY)</label>
+            <input type="number" id="input-cost" min="0" placeholder="0" value="0">
+          </div>
+          <div class="form-group">
+            <label>自由メモ (MEMO)</label>
+            <textarea id="input-memo" rows="2" placeholder="コンディション、体調など..."></textarea>
+          </div>
+          <button type="submit" class="btn-cyber">LOG E JACULATION</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- サブタブ -->
+    <section id="tab-sub" class="tab-content">
+      <div class="stat-card">
+        <label>TOTAL SPENDING</label>
+        <div class="stat-val" id="total-cost">¥0</div>
+        <div class="breakdown-list" id="cost-breakdown"></div>
+      </div>
+
+      <div class="card-title" style="margin: 20px 0 10px;">▶ HISTORY LOGS</div>
+      <div id="history-container"></div>
+
+      <div class="card" style="margin-top: 30px; border-color: var(--border);">
+        <div class="card-title" style="color: var(--cyan);">▶ DATA MANAGEMENT</div>
+        <button class="btn-cyber btn-secondary" onclick="exportData()" style="margin-bottom: 10px;">EXPORT (JSON)</button>
+        <button class="btn-cyber btn-secondary" onclick="document.getElementById('import-file').click()">IMPORT (JSON)</button>
+        <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importData(event)">
+      </div>
+    </section>
+  </main>
+
+  <nav>
+    <button class="nav-btn active" onclick="switchTab('main')">
+      <span>⚡</span>
+      MAIN
+    </button>
+    <button class="nav-btn" onclick="switchTab('sub')">
+      <span>📊</span>
+      STATS / LOG
+    </button>
+  </nav>
+
+  <!-- 編集モーダル -->
+  <div class="modal" id="edit-modal">
+    <div class="modal-content">
+      <div class="card-title">▶ EDIT LOG</div>
+      <form id="edit-form">
+        <input type="hidden" id="edit-id">
+        <div class="form-group">
+          <label>日時</label>
+          <input type="datetime-local" id="edit-datetime" required>
+        </div>
+        <div class="form-group">
+          <label>内容</label>
+          <input type="text" id="edit-type" list="type-suggestions" required>
+        </div>
+        <div class="form-group">
+          <label>支出額 (円)</label>
+          <input type="number" id="edit-cost" min="0" required>
+        </div>
+        <div class="form-group">
+          <label>メモ</label>
+          <textarea id="edit-memo" rows="2"></textarea>
+        </div>
+        <button type="submit" class="btn-cyber" style="margin-bottom: 8px;">UPDATE</button>
+        <button type="button" class="btn-cyber btn-secondary" onclick="closeEditModal()">CANCEL</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'cyber_eja_logs';
+    let logs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
+    // 朝6時を基準としたカウント計算 (JST)
+    function calculateAbstinenceDays() {
+      if (logs.length === 0) return 0;
+      
+      // 最新の射精記録日時を取得
+      const latestLog = logs.reduce((max, log) => new Date(log.datetime) > new Date(max.datetime) ? log : max, logs[0]);
+      const lastDate = new Date(latestLog.datetime);
+
+      const now = new Date();
+
+      // 直近の朝6時のタイムスタンプを計算
+      const get6AM = (d) => {
+        const target = new Date(d);
+        if (target.getHours() < 6) {
+          target.setDate(target.getDate() - 1);
+        }
+        target.setHours(6, 0, 0, 0);
+        return target;
+      };
+
+      const last6AM = get6AM(lastDate);
+      const now6AM = get6AM(now);
+
+      const diffTime = now6AM - last6AM;
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+      return Math.max(0, diffDays);
+    }
+
+    function updateCounterUI() {
+      const days = calculateAbstinenceDays();
+      document.getElementById('count-days').innerText = days;
+
+      if (logs.length > 0) {
+        const latestLog = logs.reduce((max, log) => new Date(log.datetime) > new Date(max.datetime) ? log : max, logs[0]);
+        const d = new Date(latestLog.datetime);
+        document.getElementById('last-reset-info').innerText = `LAST: ${formatDate(d)}`;
+      } else {
+        document.getElementById('last-reset-info').innerText = 'RESET: NO DATA';
+      }
+    }
+
+    function formatDate(d) {
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    function formatISOForInput(d) {
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    function updateSuggestions() {
+      const types = [...new Set(logs.map(l => l.type))].filter(Boolean);
+      const datalist = document.getElementById('type-suggestions');
+      datalist.innerHTML = types.map(t => `<option value="${t}">`).join('');
+    }
+
+    function renderHistoryAndStats() {
+      // ソート（新しい順）
+      const sortedLogs = [...logs].sort((a,b) => new Date(b.datetime) - new Date(a.datetime));
+
+      // 集計
+      let total = 0;
+      const breakdown = {};
+
+      sortedLogs.forEach(log => {
+        const cost = Number(log.cost) || 0;
+        total += cost;
+        breakdown[log.type] = (breakdown[log.type] || 0) + cost;
+      });
+
+      document.getElementById('total-cost').innerText = `¥${total.toLocaleString()}`;
+      
+      const breakdownEl = document.getElementById('cost-breakdown');
+      breakdownEl.innerHTML = Object.entries(breakdown)
+        .filter(([_, cost]) => cost > 0)
+        .map(([type, cost]) => `
+          <div class="breakdown-item">
+            <span>${type}</span>
+            <span>¥${cost.toLocaleString()}</span>
+          </div>
+        `).join('');
+
+      // 履歴一覧
+      const container = document.getElementById('history-container');
+      container.innerHTML = sortedLogs.map(log => `
+        <div class="history-item">
+          <div class="history-header">
+            <span class="history-type">${escapeHtml(log.type)}</span>
+            <span class="history-cost">¥${Number(log.cost).toLocaleString()}</span>
+          </div>
+          <div class="history-date">${formatDate(new Date(log.datetime))}</div>
+          ${log.memo ? `<div class="history-memo">${escapeHtml(log.memo)}</div>` : ''}
+          <div class="history-actions">
+            <button class="btn-sm" onclick="openEditModal('${log.id}')">EDIT</button>
+            <button class="btn-sm btn-danger" onclick="deleteLog('${log.id}')">DEL</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // フォーム送信
+    document.getElementById('eja-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const newLog = {
+        id: Date.now().toString(),
+        datetime: document.getElementById('input-datetime').value,
+        type: document.getElementById('input-type').value.trim(),
+        cost: Number(document.getElementById('input-cost').value) || 0,
+        memo: document.getElementById('input-memo').value.trim()
+      };
+
+      logs.push(newLog);
+      saveLogs();
+      
+      document.getElementById('input-memo').value = '';
+      document.getElementById('input-cost').value = '0';
+      
+      alert('記録を保存しました。');
+      updateAll();
+    });
+
+    function saveLogs() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
+    }
+
+    function updateAll() {
+      updateCounterUI();
+      updateSuggestions();
+      renderHistoryAndStats();
+    }
+
+    function deleteLog(id) {
+      if (confirm('この記録を削除しますか？')) {
+        logs = logs.filter(l => l.id !== id);
+        saveLogs();
+        updateAll();
+      }
+    }
+
+    function openEditModal(id) {
+      const log = logs.find(l => l.id === id);
+      if (!log) return;
+
+      document.getElementById('edit-id').value = log.id;
+      document.getElementById('edit-datetime').value = formatISOForInput(new Date(log.datetime));
+      document.getElementById('edit-type').value = log.type;
+      document.getElementById('edit-cost').value = log.cost;
+      document.getElementById('edit-memo').value = log.memo || '';
+
+      document.getElementById('edit-modal').classList.add('active');
+    }
+
+    function closeEditModal() {
+      document.getElementById('edit-modal').classList.remove('active');
+    }
+
+    document.getElementById('edit-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = document.getElementById('edit-id').value;
+      const index = logs.findIndex(l => l.id === id);
+
+      if (index !== -1) {
+        logs[index] = {
+          id,
+          datetime: document.getElementById('edit-datetime').value,
+          type: document.getElementById('edit-type').value.trim(),
+          cost: Number(document.getElementById('edit-cost').value) || 0,
+          memo: document.getElementById('edit-memo').value.trim()
+        };
+        saveLogs();
+        updateAll();
+        closeEditModal();
+      }
+    });
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+
+      if (tab === 'main') {
+        document.getElementById('tab-main').classList.add('active');
+        event.currentTarget.classList.add('active');
+      } else {
+        document.getElementById('tab-sub').classList.add('active');
+        event.currentTarget.classList.add('active');
+      }
+    }
+
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(logs, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `cyber_eja_backup_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importData(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const imported = JSON.parse(evt.target.result);
+          if (Array.isArray(imported)) {
+            if (confirm('既存のデータが上書き・統合されます。インポートを実行しますか？')) {
+              logs = imported;
+              saveLogs();
+              updateAll();
+              alert('インポートが完了しました。');
+            }
+          } else {
+            alert('不正なファイル形式です。');
+          }
+        } catch(err) {
+          alert('JSONの読み込みに失敗しました。');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // 初期化
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('input-datetime').value = formatISOForInput(new Date());
+      updateAll();
+    });
+  </script>
+</body>
+</html>
