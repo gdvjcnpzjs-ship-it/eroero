@@ -9,7 +9,7 @@
   <title>CYBERPUNK RELOAD TRACKER</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Zen+Kaku Gothic+New:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg-color: #05050a;
@@ -198,6 +198,7 @@
 
     input, select, textarea {
       width: 100%;
+      max-width: 100%;
       background: rgba(5, 5, 10, 0.8);
       border: 1px solid var(--border);
       border-radius: 4px;
@@ -393,12 +394,12 @@
           </div>
           <div class="form-group">
             <label>内容 (CATEGORY / CATEGORY SUGGEST)</label>
-            <input type="text" id="input-type" list="type-suggestions" placeholder="オナニー, メンエス..." required autocomplete="off">
+            <input type="text" id="input-type" list="type-suggestions" placeholder="内容を入力" required autocomplete="off">
             <datalist id="type-suggestions"></datalist>
           </div>
           <div class="form-group">
             <label>支出額 (COST - JPY)</label>
-            <input type="number" id="input-cost" min="0" placeholder="0" value="0">
+            <input type="number" id="input-cost" min="0" placeholder="0">
           </div>
           <div class="form-group">
             <label>自由メモ (MEMO)</label>
@@ -593,7 +594,7 @@
       saveLogs();
       
       document.getElementById('input-memo').value = '';
-      document.getElementById('input-cost').value = '0';
+      document.getElementById('input-cost').value = '';
       
       alert('記録を保存しました。');
       updateAll();
