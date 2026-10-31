@@ -9,7 +9,7 @@
   <title>CYBERPUNK RELOAD TRACKER</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Zen+Kaku Gothic+New:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg-color: #05050a;
@@ -199,6 +199,7 @@
     input, select, textarea {
       width: 100%;
       max-width: 100%;
+      min-width: 0;
       background: rgba(5, 5, 10, 0.8);
       border: 1px solid var(--border);
       border-radius: 4px;
@@ -473,17 +474,12 @@
     const STORAGE_KEY = 'cyber_eja_logs';
     let logs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
 
-    // 朝6時を基準としたカウント計算 (JST)
+    // 朝6時を基準としたカウント計算 (JST) - 午前6時時点で過去24時間以内に射精のカウントがない場合に1日増やす仕様
     function calculateAbstinenceDays() {
       if (logs.length === 0) return 0;
-      
-      // 最新の射精記録日時を取得
-      const latestLog = logs.reduce((max, log) => new Date(log.datetime) > new Date(max.datetime) ? log : max, logs[0]);
-      const lastDate = new Date(latestLog.datetime);
 
       const now = new Date();
 
-      // 直近の朝6時のタイムスタンプを計算
       const get6AM = (d) => {
         const target = new Date(d);
         if (target.getHours() < 6) {
@@ -493,13 +489,33 @@
         return target;
       };
 
-      const last6AM = get6AM(lastDate);
-      const now6AM = get6AM(now);
+      const now6AM = get6AM(now).getTime();
+      const latestLog = logs.reduce((max, log) => new Date(log.datetime) > new Date(max.datetime) ? log : max, logs[0]);
+      const latestLogTime = new Date(latestLog.datetime).getTime();
 
-      const diffTime = now6AM - last6AM;
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      let checkTime = get6AM(new Date(latestLog.datetime)).getTime() + (24 * 60 * 60 * 1000);
+      while (checkTime <= latestLogTime) {
+        checkTime += (24 * 60 * 60 * 1000);
+      }
 
-      return Math.max(0, diffDays);
+      let count = 0;
+      while (checkTime <= now6AM) {
+        const startInterval = checkTime - (24 * 60 * 60 * 1000);
+        const endInterval = checkTime;
+
+        const hasLog = logs.some(log => {
+          const t = new Date(log.datetime).getTime();
+          return t > startInterval && t <= endInterval;
+        });
+
+        if (!hasLog) {
+          count++;
+        }
+
+        checkTime += (24 * 60 * 60 * 1000);
+      }
+
+      return count;
     }
 
     function updateCounterUI() {
