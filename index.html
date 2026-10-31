@@ -86,7 +86,7 @@
       border: none;
       color: var(--text-dim);
       font-family: var(--font-num);
-      font-size: 0.85rem;
+      font-size: 0.75rem;
       letter-spacing: 1px;
       display: flex;
       flex-direction: column;
@@ -342,6 +342,62 @@
       color: var(--pink);
     }
 
+    /* Calendar */
+    .calendar-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-family: var(--font-num);
+      font-size: 0.9rem;
+      color: var(--cyan);
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      text-align: center;
+    }
+    .calendar-dow {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      padding: 4px 0;
+    }
+    .calendar-cell {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(5, 5, 10, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: var(--font-num);
+      font-size: 0.85rem;
+      position: relative;
+    }
+    .calendar-cell.empty {
+      border: none;
+      background: transparent;
+    }
+    .calendar-cell.has-eja {
+      border-color: var(--pink);
+      color: var(--pink);
+      box-shadow: 0 0 8px rgba(255, 0, 85, 0.3);
+      background: rgba(255, 0, 85, 0.08);
+    }
+    .calendar-cell.has-eja::after {
+      content: "";
+      position: absolute;
+      bottom: 3px;
+      width: 4px;
+      height: 4px;
+      background: var(--pink);
+      border-radius: 50%;
+      box-shadow: 0 0 4px var(--pink);
+    }
+
     /* Modal */
     .modal {
       display: none;
@@ -429,6 +485,19 @@
         <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importData(event)">
       </div>
     </section>
+
+    <!-- カレンダータブ -->
+    <section id="tab-calendar" class="tab-content">
+      <div class="card">
+        <div class="card-title">▶ EJA CALENDAR</div>
+        <div class="calendar-nav">
+          <button class="btn-sm" onclick="changeMonth(-1)">◀ PREV</button>
+          <span id="calendar-month-label">----/--</span>
+          <button class="btn-sm" onclick="changeMonth(1)">NEXT ▶</button>
+        </div>
+        <div class="calendar-grid" id="calendar-grid"></div>
+      </div>
+    </section>
   </main>
 
   <nav>
@@ -439,6 +508,10 @@
     <button class="nav-btn" onclick="switchTab('sub')">
       <span>📊</span>
       STATS / LOG
+    </button>
+    <button class="nav-btn" onclick="switchTab('calendar')">
+      <span>📅</span>
+      CALENDAR
     </button>
   </nav>
 
@@ -473,6 +546,7 @@
   <script>
     const STORAGE_KEY = 'cyber_eja_logs';
     let logs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    let currentCalendarDate = new Date();
 
     // 朝6時を基準としたカウント計算 (JST) - 午前6時時点で過去24時間以内に射精のカウントがない場合に1日増やす仕様
     function calculateAbstinenceDays() {
@@ -591,6 +665,58 @@
       `).join('');
     }
 
+    function changeMonth(direction) {
+      currentCalendarDate.setMonth(currentCalendarDate.getMonth() + direction);
+      renderCalendar();
+    }
+
+    function renderCalendar() {
+      const year = currentCalendarDate.getFullYear();
+      const month = currentCalendarDate.getMonth();
+      
+      document.getElementById('calendar-month-label').innerText = `${year}/${String(month + 1).padStart(2, '0')}`;
+
+      const grid = document.getElementById('calendar-grid');
+      grid.innerHTML = '';
+
+      // 曜日ヘッダー
+      const dows = ['日', '月', '火', '水', '木', '金', '土'];
+      dows.forEach(dow => {
+        const div = document.createElement('div');
+        div.className = 'calendar-dow';
+        div.innerText = dow;
+        grid.appendChild(div);
+      });
+
+      const firstDayIndex = new Date(year, month, 1).getDay();
+      const lastDay = new Date(year, month + 1, 0).getDate();
+
+      // ログの日付を 'YYYY-MM-DD' のセットにする
+      const ejaDates = new Set(logs.map(log => {
+        const d = new Date(log.datetime);
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      }));
+
+      // 空白セル
+      for (let i = 0; i < firstDayIndex; i++) {
+        const div = document.createElement('div');
+        div.className = 'calendar-cell empty';
+        grid.appendChild(div);
+      }
+
+      // 日付セル
+      for (let day = 1; day <= lastDay; day++) {
+        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const div = document.createElement('div');
+        div.className = 'calendar-cell';
+        if (ejaDates.has(dateStr)) {
+          div.classList.add('has-eja');
+        }
+        div.innerText = day;
+        grid.appendChild(div);
+      }
+    }
+
     function escapeHtml(str) {
       return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
@@ -624,6 +750,7 @@
       updateCounterUI();
       updateSuggestions();
       renderHistoryAndStats();
+      renderCalendar();
     }
 
     function deleteLog(id) {
@@ -677,9 +804,13 @@
       if (tab === 'main') {
         document.getElementById('tab-main').classList.add('active');
         event.currentTarget.classList.add('active');
-      } else {
+      } else if (tab === 'sub') {
         document.getElementById('tab-sub').classList.add('active');
         event.currentTarget.classList.add('active');
+      } else if (tab === 'calendar') {
+        document.getElementById('tab-calendar').classList.add('active');
+        event.currentTarget.classList.add('active');
+        renderCalendar();
       }
     }
 
